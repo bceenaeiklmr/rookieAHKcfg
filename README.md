@@ -81,6 +81,10 @@ It’s easily customizable, with no AHK experience required.
 - Don't like memorizing hotkeys?  
 - Use a menu to explore features easily.
 
+## Legal
+This project is not affiliated with Microsoft or Visual Studio Code.  
+It is an independent script created to enhance user experience.
+
 ## Credit:
 
 - Huge thanks to the AutoHotkey community for years of inspiration.  
