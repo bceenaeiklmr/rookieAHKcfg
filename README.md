@@ -14,14 +14,13 @@ It’s easily customizable, with no AHK experience required.
 - Format strings, wrap/unwrap text, and insert emojis via menu or hotstrings.
 - Built to be simple, fast, and easy to remember.
 
-![rookieAHKcfg_Win32Menu](https://github.com/user-attachments/assets/7532cb05-7955-40ad-839c-e49045258d49)
-
+![rookieAHKcfg_Win32Menu](https://github.com/user-attachments/assets/c3bbe0a0-edd4-4e74-bba6-2fe4e70efbee)
 
 ## Setup
 
 1. [Install AutoHotkey](https://www.autohotkey.com/) (v2.0).
 2. Download this repo.
-3. Run `rookieAHK.ahk`.
+3. Run `rookieAHKcfg.ahk`.
 4. Press `Win + F1` to see the cheat sheet.
 
 ## Features
@@ -50,8 +49,11 @@ It’s easily customizable, with no AHK experience required.
 
 ### Mouse over window control
 
-- `Win + Wheel Up / Down` → Resize windows on the fly. 
-- `Win + Alt + Wheel` → Adjust transparency instantly.
+| Hotkey                  | Action                             |
+|-------------------------|------------------------------------|
+| `Win + Wheel Up / Down` | Resize windows on the fly.         |
+| `Win + Alt + Wheel`     | Adjust transparency instantly.     |
+
 
 ### String things
 
