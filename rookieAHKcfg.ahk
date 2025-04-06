@@ -3,19 +3,17 @@
 ; Author:    Bence Markiel (bceenaeiklmr)
 ; Github:    https://github.com/bceenaeiklmr/rookieAHKcfg
 ; Date       06.04.2025
-; Version    0.3.0
+; Version    0.3.1
 
 #Requires AutoHotkey v2.0
 #SingleInstance
 #Warn
 
 
-; User Settings.
 devFolderPath := "C:/"
 devPrivateLib := "D:/dev/"
 W32menu.DarkMode(true)
 W32menu.PreviewIcons(false)
-
 
 ; Import project.
 #include src/MouseWindowManager/MouseWindowManager.ahk
@@ -283,18 +281,18 @@ class W32menu {
         local strings
 
         strings := this.strings
-        strings.Add("Sort`tabc",          (*) => StrWin32MenuCopy("Sort", A_Clipboard))
-        strings.Add("Sort reverse`tbca",  (*) => StrWin32MenuCopy("Sort", A_Clipboard, "R"))
-        strings.Add("Reverse`taz za",     (*) => StrWin32MenuCopy("StrReverse", A_Clipboard))
-        strings.Add("Upper case`tUPPER",  (*) => StrWin32MenuCopy("StrUpper", A_Clipboard))
-        strings.Add("Lower case`tlower",  (*) => StrWin32MenuCopy("StrLower", A_Clipboard))
-        strings.Add("Title case`tTitle",  (*) => StrWin32MenuCopy("StrTitle", A_Clipboard))
-        strings.Add("Random case`trAND",  (*) => StrWin32MenuCopy("StrRandom", A_Clipboard))
-        strings.Add("Inverse case`tiNV",  (*) => StrWin32MenuCopy("StrInverse", A_Clipboard))
-        strings.Add("Align pipe`ta|b|c",  (*) => StrWin32MenuCopy("StrAlign", A_Clipboard, "|"))
-        strings.Add("Align comma`ta,b,c", (*) => StrWin32MenuCopy("StrAlign", A_Clipboard, ","))
-        strings.Add("Align space`ta b c", (*) => StrWin32MenuCopy("StrAlign", A_Clipboard, " "))
-        strings.Add("Delete empty lines`t``n``n  ``n", (*) => StrWin32MenuCopy("StrReplaceEmptyLines", A_Clipboard))
+        strings.Add("Sort`tabc",          (*) => StrWin32MenuCopy("Sort"))
+        strings.Add("Sort reverse`tbca",  (*) => StrWin32MenuCopy("Sort" "R"))
+        strings.Add("Reverse`taz za",     (*) => StrWin32MenuCopy("StrReverse"))
+        strings.Add("Upper case`tUPPER",  (*) => StrWin32MenuCopy("StrUpper"))
+        strings.Add("Lower case`tlower",  (*) => StrWin32MenuCopy("StrLower"))
+        strings.Add("Title case`tTitle",  (*) => StrWin32MenuCopy("StrTitle"))
+        strings.Add("Random case`trAND",  (*) => StrWin32MenuCopy("StrRandom"))
+        strings.Add("Inverse case`tiNV",  (*) => StrWin32MenuCopy("StrInverse"))
+        strings.Add("Align pipe`ta|b|c",  (*) => StrWin32MenuCopy("StrAlign", "|"))
+        strings.Add("Align comma`ta,b,c", (*) => StrWin32MenuCopy("StrAlign", ","))
+        strings.Add("Align space`ta b c", (*) => StrWin32MenuCopy("StrAlign", " "))
+        strings.Add("Delete empty lines`t``n``n  ``n", (*) => StrWin32MenuCopy("StrReplaceEmptyLines"))
     }
 
     static PreviewIcons(show := false) {
@@ -984,17 +982,16 @@ StrReplaceEmptyLines(str) {
 ; Copy the selected text to the clipboard and call a function with it.
 StrWin32MenuCopy(fn, params*) {
 
-    local s, cb
+    local cb
 
     ; Save clipboard.
     cb := ClipboardAll()
 
     ; Copy selected, call function, paste.
-    s := ""
     A_Clipboard := ""
-    Sleep(20)
     Send("{CtrlDown}c{CtrlUp}")
-    if (ClipWait(.5, 0)) {
+    if (ClipWait(.25, 0)) {
+        params.InsertAt(1, A_Clipboard)
         A_Clipboard := (%fn%)(params*)
         Send("{CtrlDown}v{CtrlUp}")
         Sleep(100)
