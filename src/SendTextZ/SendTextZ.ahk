@@ -2,86 +2,68 @@
 ; License:   MIT License
 ; Author:    Bence Markiel (bceenaeiklmr)
 ; Github:    https://github.com/bceenaeiklmr/SendTextZ
-; Date       19.05.2024
-; Version    0.2.2
+; Date       06.04.2025
+; Version    0.3.0
 
-#include ../../rookieAHKcfg.ahk
+SendTextZ
 
-SendTextZ()
+SendTextZ(triggerHotkey := ":") {
 
-; TODO: Refactor old code
-; TODO: IniRead works but only with UTF-16 files
-; FileEncoding("UTF-16")
-; inp := IniRead("C:\Dev\ahk\GitHub\ahkCFG\src\sendTextZ\hotstring - Copy.ini", "Emoji Faces")
+    ; Main menu.
+    texts := Menu()
 
-SendTextZ(TriggerHotkey := ":") {
+    ; Read INI file.
+    fileName := A_ScriptDir "\src\SendTextZ\hotstring.ini"
+    sections := IniRead(fileName)
 
-    ; IniRead only supports Unicode in UTF-16 files.
-    Input := FileRead(A_ScriptDir "\src\SendTextZ\hotstring.ini")
-    ; temporarily replace OR
-    InputFile := StrReplace(Input, "||", "Ͻ")
-    Sect := Array()
-    loop Parse, InputFile, "`n" {
-        ; skip empty and comment lines
-        if (A_LoopField ~= "^;") || (3 > StrLen(A_LoopField))
-            continue
-        Line := StrReplace(A_LoopField, Chr(13))
-        ; category names
-        if RegExMatch(Line, "^\[\w+(\s\w+)*\]", &Lines) {    ; regex
-            Name := Trim(SubStr(Lines[], 2, -1))
-            Sect.Push({ Name: Name, Hotkeys: [] })
-        }
-        else { ; hotkeys
-            ; columns are separated by the pipe '|' chr
-            Col := StrSplit(Line, "|")
-            for v in Col {
-                Col[A_index] := Trim(v)
-                ; make `n chars visible in menus
-                if (A_index = 4)
-                    Col[A_index] := StrReplace(v, '``n', '`n')
-                if InStr(v, "Ͻ")
-                    Col[A_index] := StrReplace(v, "Ͻ", "||")
+    ; Read sections and create section menus.
+    for section in StrSplit(sections, "`n") {
+        sectMenu := Menu()
+       
+        ; Read keys from section.
+        keys := IniRead(fileName, section)
+        keys := StrSplit(keys, "`n")
+        for key in keys {
+            
+            ; Temporarily replace OR with a different character.
+            if InStr(key, "||")
+                key := StrReplace(key, "||", "Ͻ")
+            
+            key := StrSplit(key, "|")
+            for v in key
+                key[A_index] := Trim(v)
+            
+            ; Make `n chars visible in menus.
+            if (key.Length = 4 && InStr(key[4], "``n")) 
+                key[4] := StrReplace(key[4], "``n", "`n")
+            
+            ; Replace temporary character.
+            if InStr(key[3], "Ͻ")
+                key[3] := StrReplace(key[3], "Ͻ", "||")
+
+            pre := key[1]
+            txt := key[3]
+            str := (key.Length < 4) ? key[3] : key[4]
+
+            sectMenu.Add(pre "`t" txt, SendStr.Bind(str))
+
+            ; Create hotstring.
+            for hotStr in StrSplit(key[2], ",") {
+                HotString(":*:" triggerHotkey Trim(hotStr), SendStr.Bind(str))
             }
 
-            obj := { Preview : Col[1]
-                   , Hotstrg : Col[2]
-                   , Text    : Col[3]
-                   , Code    : (4 > Col.length) ? "" : Col[4] }
-
-            Sect[Sect.Length].Hotkeys.Push(obj)
-        }
-    }
-
-    ; create menus
-    Texts := Menu()
-    for v in Sect {
-        SectMenu := Menu()
-        for hk in v.Hotkeys {
-            vStrg := Trim((hk.Code !== "") ? hk.Code : hk.Text)
-            Sectmenu.Add(hk.Preview "`t" hk.Text, SendStr.Bind(vStrg))
-            ; register hotstrings
-            hStrings := StrSplit(hk.HotStrg, ",")
-            for hStr in hStrings
-                HotString(":*:" TriggerHotkey Trim(hStr), SendStr.Bind(vStrg))            
-        }
-        texts.Add(v.Name, sectmenu)
+            texts.Add(section, sectMenu)
+        }        
     }
 
     W32menu.main.Add("Texts", texts)
-    W32menu.main.SetIcon('Texts', 'Shell32.dll', 75)
-    return
+    W32menu.main.SetIcon("Texts", "Shell32.dll", 75)
 }
 
 SendStr(str, *) {
-    if (SubStr(str, 1, 1) == '*') {
+    if (SubStr(str, 1, 1) == "*") {
         return Send(SubStr(str, 2))
     }
-    cb := ClipboardAll()
-    A_Clipboard := str
-    if ClipWait(.4, 0) {
-        Send("{CtrlDown}v{CtrlUp}")
-        Sleep(100)
-    }
-    A_Clipboard := cb
+    SendText(str)
     return
 }
