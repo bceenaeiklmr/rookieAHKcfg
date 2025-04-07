@@ -2,16 +2,15 @@
 ; License:   MIT License
 ; Author:    Bence Markiel (bceenaeiklmr)
 ; Github:    https://github.com/bceenaeiklmr/rookieAHKcfg
-; Date       06.04.2025
-; Version    0.3.1
+; Date       07.04.2025
+; Version    0.3.2
 
 #Requires AutoHotkey v2.0
 #SingleInstance
 #Warn
 
-
-devFolderPath := "C:/"
-devPrivateLib := "D:/dev/"
+; User Settings. (see config.ini after first run)
+LoadConfig()
 W32menu.DarkMode(true)
 W32menu.PreviewIcons(false)
 
@@ -21,7 +20,7 @@ W32menu.PreviewIcons(false)
 
 
 ; Command hotkeys.
-MButton:: W32menu.Show(400)                 ; Middle mouse button, show on keypress.
+~MButton:: W32menu.Show(400)                ; Middle mouse button, show on keypress.
 #c:: W32menu.Show()                         ; Win + C, show main menu.
 #w:: WinSetCenter()                         ; Win + W, center window.
 #g:: SearchSelectedText()                   ; Win + G, search selected text in Google.
@@ -134,7 +133,7 @@ class W32menu {
     ; Enable or disable dark mode.
     static DarkMode(enable := true) {
         static current := ""
-        if (enable ~= "^(0|1)$" && current != enable) {
+        if (enable ~= "^(0|1)$" && current !== enable) {
             Win32MenuDarkMode(enable)
             current := enable
         }
@@ -147,14 +146,11 @@ class W32menu {
         }
         else {
             pressed := false
-            while (GetKeyState(A_ThisHotkey, "P")) {
+            while (GetKeyState(SubStr(A_ThisHotkey, 2), "P")) {
                 if (A_TimeSinceThisHotkey >= pressDuration) {
                     this.main.Show()
                     pressed := true
                 }
-            }
-            if (!pressed) {
-                Send("{" A_ThisHotkey "}")
             }
         }
     }
@@ -175,55 +171,49 @@ class W32menu {
         this.main.SetIcon("System",  "imageres.dll", 194)
         if (VSC.path)
             this.main.SetIcon("Visual Studio Code",  VSC.path, 1)
-        this.main.SetIcon("Windows", "Shell32.dll", 315)
-        this.main.SetIcon("String",  "Shell32.dll", 260)
+        this.main.SetIcon("Windows", "shell32.dll", 315)
+        this.main.SetIcon("String",  "shell32.dll", 260)
         return
     }
 
     ; System menu.
     static AddSysMenu() {
-
-        local sys
-
-        sys := this.sys
-        sys.Add("My computer",  (*) => Run("::{20D04FE0-3AEA-1069-A2D8-08002B30309D}"))
-        sys.Add("Recycle bin",  (*) => Run("::{645FF040-5081-101B-9F08-00AA002F954E}"))
-        sys.Add("Downloads",    (*) => Run("C:\users\" A_UserName "\Downloads"))
-        sys.Add("My documents", (*) => Run(A_MyDocuments))
-        sys.Add("Open desktop", (*) => Run(A_Desktop))
-        sys.Add("Show desktop", (*) => ComObject("Shell.Application").ToggleDesktop())
+        this.sys.Add("My computer",  (*) => Run("::{20D04FE0-3AEA-1069-A2D8-08002B30309D}"))
+        this.sys.Add("Recycle bin",  (*) => Run("::{645FF040-5081-101B-9F08-00AA002F954E}"))
+        this.sys.Add("Downloads",    (*) => Run("C:\users\" A_UserName "\Downloads"))
+        this.sys.Add("My documents", (*) => Run(A_MyDocuments))
+        this.sys.Add("Open desktop", (*) => Run(A_Desktop))
+        this.sys.Add("Show desktop", (*) => ComObject("Shell.Application").ToggleDesktop())
         
-        sys.SetIcon("My computer",  "imageres.dll", 194)
-        sys.SetIcon("Recycle bin",  "imageres.dll", 50)
-        sys.SetIcon("Downloads",    "imageres.dll", 176)
-        sys.SetIcon("My documents", "imageres.dll", 180)
-        sys.SetIcon("Open desktop", "imageres.dll", 180)
-        sys.SetIcon("Show desktop", "imageres.dll", 175)
+        this.sys.SetIcon("My computer",  "imageres.dll", 194)
+        this.sys.SetIcon("Recycle bin",  "imageres.dll", 50)
+        this.sys.SetIcon("Downloads",    "imageres.dll", 176)
+        this.sys.SetIcon("My documents", "imageres.dll", 180)
+        this.sys.SetIcon("Open desktop", "imageres.dll", 180)
+        this.sys.SetIcon("Show desktop", "imageres.dll", 175)
     }
 
     ; Fan control menu.
     static AddFanMenu() {
-
-        local fan
         
-        fan := this.fan := Menu()
+        this.fan := Menu()
 
-        fan.Add("Silent",    (*) => FanControl("Silent"))
-        fan.Add("Game",      (*) => FanControl("Game"))
-        fan.Add("Benchmark", (*) => FanControl("Benchmark"))
+        this.fan.Add("Silent",    (*) => FanControl("Silent"))
+        this.fan.Add("Game",      (*) => FanControl("Game"))
+        this.fan.Add("Benchmark", (*) => FanControl("Benchmark"))
 
-        fan.SetIcon("Silent",    "Shell32.dll", 138)
-        fan.SetIcon("Game",      "Shell32.dll", 138)
-        fan.SetIcon("Benchmark", "Shell32.dll", 138)
+        this.fan.SetIcon("Silent",    "shell32.dll", 138)
+        this.fan.SetIcon("Game",      "shell32.dll", 138)
+        this.fan.SetIcon("Benchmark", "shell32.dll", 138)
 
         this.sys.Add("Fan Control", this.fan)
-        this.sys.SetIcon("Fan Control", "Shell32.dll", 13)
+        this.sys.SetIcon("Fan Control", "shell32.dll", 13)
     }
 
     ; Windows menu.
     static AddWinMenu() {
 
-        local CLSID, controlPanel, win
+        local CLSID, controlPanel
 
         ; Master control panel creates a shortcut, it will be hidden.
         CLSID := "{ED7BA470-8E54-465E-825C-99712043E01C}"
@@ -233,81 +223,71 @@ class W32menu {
             FileSetAttrib("H", controlPanel, "D")
         }   
 
-        win := this.win
-        win.Add("Hide Desktop Icons", (*) => Run(A_ScriptDir "/src/HideMyIcon/HideMyIcon_Gui.ahk"))
-        win.Add("Master Control Panel", (*) => Run(A_ScriptDir "\MasterControlPanel." CLSID))
-        win.Add("Registry Editor", (*) => Run("RegEdit.exe"))
+        this.win.Add("Hide Desktop Icons", (*) => Run(A_ScriptDir "/src/HideMyIcon/HideMyIcon_Gui.ahk"))
+        this.win.Add("Master Control Panel", (*) => Run(A_ScriptDir "\MasterControlPanel." CLSID))
+        this.win.Add("Registry Editor", (*) => Run("RegEdit.exe"))
 
-        win.SetIcon("Hide desktop icons", "Shell32.dll", 70)
-        win.SetIcon("Master Control Panel", "Shell32.dll", 315)
-        win.SetIcon("Registry Editor", "Shell32.dll", 77)
-        
+        this.win.SetIcon("Hide desktop icons", "shell32.dll", 70)
+        this.win.SetIcon("Master Control Panel", "shell32.dll", 315)
+        this.win.SetIcon("Registry Editor", "shell32.dll", 77)
     }
 
     ; Visual Studio Code menu.
     static AddVSCMenu() {
+        this.vscode.Add("Backup Project",    (*) => VSC.Backup())
+        this.vscode.Add("Personal Library",  (*) => VSC.OpenFiles(devPrivateLib))
+        this.vscode.Add("Development Drive", (*) => Run(devFolderPath))
+        this.vscode.Add("Format Document",   (*) => VSC.IndentText())
+        this.vscode.Add("Fold level 0",      (*) => VSC.Fold(0))
+        this.vscode.Add("Fold level 1",      (*) => VSC.Fold(1))
+        this.vscode.Add("Fold level 2",      (*) => VSC.Fold(2))
+        this.vscode.Add("Unfold All",        (*) => VSC.UnfoldAll())
+        this.vscode.Add("Unfold Comment",    (*) => VSC.UnfoldComment())
+        this.vscode.Add("File new explorer", (*) => VSC.FileShowInExplorer())
+        this.vscode.Add("File new instance", (*) => VSC.FileShowNewInstance())
 
-        local vscode
-
-        vscode := this.vscode
-        vscode.Add("Backup Project",    (*) => VSC.Backup())
-        vscode.Add("Personal Library",  (*) => VSC.OpenFiles(devPrivateLib))
-        vscode.Add("Development Drive", (*) => Run(devFolderPath))
-        vscode.Add("Format Document",   (*) => VSC.IndentText())
-        vscode.Add("Fold level 0",      (*) => VSC.Fold(0))
-        vscode.Add("Fold level 1",      (*) => VSC.Fold(1))
-        vscode.Add("Fold level 2",      (*) => VSC.Fold(2))
-        vscode.Add("Unfold All",        (*) => VSC.UnfoldAll())
-        vscode.Add("Unfold Comment",    (*) => VSC.UnfoldComment())
-        vscode.Add("File new explorer", (*) => VSC.FileShowInExplorer())
-        vscode.Add("File new instance", (*) => VSC.FileShowNewInstance())
-
-        vscode.SetIcon("Backup Project",    "Shell32.dll", 259)
-        vscode.SetIcon("Personal Library",  "Shell32.dll", 161)
-        vscode.SetIcon("Development Drive", "Shell32.dll", 192)
-        vscode.SetIcon("Format Document",   "Shell32.dll", 295)
-        vscode.SetIcon("Fold level 0",      "Shell32.dll", 298)
-        vscode.SetIcon("Fold level 1",      "Shell32.dll", 298)
-        vscode.SetIcon("Fold level 2",      "Shell32.dll", 298)
-        vscode.SetIcon("Unfold All",        "Shell32.dll", 147)
-        vscode.SetIcon("Unfold Comment",    "Shell32.dll", 147)
-        vscode.SetIcon("File new explorer", "Shell32.dll", 4)
-        vscode.SetIcon("File new instance", VSC.path, 1)
+        this.vscode.SetIcon("Backup Project",    "shell32.dll", 259)
+        this.vscode.SetIcon("Personal Library",  "shell32.dll", 161)
+        this.vscode.SetIcon("Development Drive", "shell32.dll", 192)
+        this.vscode.SetIcon("Format Document",   "shell32.dll", 295)
+        this.vscode.SetIcon("Fold level 0",      "shell32.dll", 298)
+        this.vscode.SetIcon("Fold level 1",      "shell32.dll", 298)
+        this.vscode.SetIcon("Fold level 2",      "shell32.dll", 298)
+        this.vscode.SetIcon("Unfold All",        "shell32.dll", 147)
+        this.vscode.SetIcon("Unfold Comment",    "shell32.dll", 147)
+        this.vscode.SetIcon("File new explorer", "shell32.dll", 4)
+        this.vscode.SetIcon("File new instance", VSC.path, 1)
     }
 
     ; Strings menu.
     static AddStrMenu() {
-
-        local strings
-
-        strings := this.strings
-        strings.Add("Sort`tabc",          (*) => StrWin32MenuCopy("Sort"))
-        strings.Add("Sort reverse`tbca",  (*) => StrWin32MenuCopy("Sort" "R"))
-        strings.Add("Reverse`taz za",     (*) => StrWin32MenuCopy("StrReverse"))
-        strings.Add("Upper case`tUPPER",  (*) => StrWin32MenuCopy("StrUpper"))
-        strings.Add("Lower case`tlower",  (*) => StrWin32MenuCopy("StrLower"))
-        strings.Add("Title case`tTitle",  (*) => StrWin32MenuCopy("StrTitle"))
-        strings.Add("Random case`trAND",  (*) => StrWin32MenuCopy("StrRandom"))
-        strings.Add("Inverse case`tiNV",  (*) => StrWin32MenuCopy("StrInverse"))
-        strings.Add("Align pipe`ta|b|c",  (*) => StrWin32MenuCopy("StrAlign", "|"))
-        strings.Add("Align comma`ta,b,c", (*) => StrWin32MenuCopy("StrAlign", ","))
-        strings.Add("Align space`ta b c", (*) => StrWin32MenuCopy("StrAlign", " "))
-        strings.Add("Delete empty lines`t``n``n  ``n", (*) => StrWin32MenuCopy("StrReplaceEmptyLines"))
+        this.strings.Add("Sort`tabc",          (*) => StrWin32MenuCopy("Sort"))
+        this.strings.Add("Sort reverse`tbca",  (*) => StrWin32MenuCopy("Sort", "R"))
+        this.strings.Add("Reverse`taz za",     (*) => StrWin32MenuCopy("StrReverse"))
+        this.strings.Add("Upper case`tUPPER",  (*) => StrWin32MenuCopy("StrUpper"))
+        this.strings.Add("Lower case`tlower",  (*) => StrWin32MenuCopy("StrLower"))
+        this.strings.Add("Title case`tTitle",  (*) => StrWin32MenuCopy("StrTitle"))
+        this.strings.Add("Random case`trAND",  (*) => StrWin32MenuCopy("StrRandom"))
+        this.strings.Add("Inverse case`tiNV",  (*) => StrWin32MenuCopy("StrInverse"))
+        this.strings.Add("Align pipe`ta|b|c",  (*) => StrWin32MenuCopy("StrAlign", "|"))
+        this.strings.Add("Align comma`ta,b,c", (*) => StrWin32MenuCopy("StrAlign", ","))
+        this.strings.Add("Align space`ta b c", (*) => StrWin32MenuCopy("StrAlign", " "))
+        this.strings.Add("Delete empty lines`t``n``n  ``n", (*) => StrWin32MenuCopy("StrReplaceEmptyLines"))
     }
 
     static PreviewIcons(show := false) {
 
-        local i, f, files, icons
+        local i, f, j, n, icons, iconSub, files, subMenu, strMenu
 
         static loaded := false
 
-        if (!show)
+        if (!show || loaded)
             return
 
         ; credit: cyqsimon
         ; https://github.com/cyqsimon/W10-Ico-Ref
         files := [
-            "Shell32.dll",          ; Another collection of miscellaneous icons, including icons for internet, devices, networks, peripherals, folders, etc.
+            "shell32.dll",          ; Another collection of miscellaneous icons, including icons for internet, devices, networks, peripherals, folders, etc.
             "imageres.dll",         ; Miscellaneous icons used almost everywhere, including different types of folders, hardware devices, peripherals, actions, etc.
             "pifmgr.dll",           ; Legacy and exotic (i.e. not very useful) icons used in Windows 95 and 98.
             "explorer.exe",         ; A few icons used by Explorer and its older versions.
@@ -319,7 +299,6 @@ class W32menu {
             "netcenter.dll",        ; A few icons related to networking.
             "netshell.dll",         ; More icons related to networking, including icons for Bluetooth, wireless routers, and network connections.
             "networkexplorer.dll",  ; A few more icons related to networking, mostly peripheral hardware related.
-            "pnidui.dll",           ; Modern style white icons related to network status.
             "sensorscpl.dll",       ; Icons for various sensors, which mostly look the same unfortunately.
             "setupapi.dll",         ; Icons used by hardware setup wizards, including icons for various peripheral hardware.
             "wmploc.dll",           ; Icons related to multimedia, including hardware icons, MIME type icons, status icons, etc.
@@ -335,16 +314,18 @@ class W32menu {
             "actioncentercpl.dll",  ; Icons used in action center, notably including red, yellow, and green traffic lights.
             "aclui.dll",            ; A few checks, crosses, and i-in-circles.
             "autoplay.dll",         ; One autoplay icon.
-            "comctl32.dll",         ; Legacy info, warning, and error icons.
             "xwizards.dll",         ; One software install icon.
             "ncpa.cpl",             ; One network folder icon.
             "url.dll"               ; A few random network related icons.
+            ; Deprecated, no icons in Windows 11.
+            ;"comctl32.dll",        ; Legacy info, warning, and error icons.
+            ;"pnidui.dll",          ; Modern style white icons related to network status.
         ]
 
         ; Create a new menu for icons.
         icons := Menu()
         W32menu.main.Add("Search icons", icons)
-        W32menu.main.SetIcon("Search icons", "Shell32.dll", 23)
+        W32menu.main.SetIcon("Search icons", "shell32.dll", 23)
 
         ; Add a sub menu for each file.
         for f in files {
@@ -356,12 +337,14 @@ class W32menu {
             i := 0
             loop {
                 try {
-                    icons.SetIcon(f, f, A_Index - 1) ; 23
+                    icons.SetIcon(f, f, A_Index - 1)
                 } catch {
                     break
                 }
                 i += 1
             }
+            ; Set first icon to sub menu.
+            icons.SetIcon(f, f, 0)
 
             ; Element per sub menu.
             n := 32
@@ -369,15 +352,15 @@ class W32menu {
 
             ; Crete sub menus and add icons.
             loop subMenu {
-                i := A_index
+                i := A_Index
                 subMenu := Menu()
-                strMenu := Format("{:03}", (A_index - 1) * n) " - " Format("{:03}", A_Index * n)
+                strMenu := Format("{:03}", (i - 1) * n) " - " Format("{:03}", i * n)
                 iconSub.Add(strmenu, subMenu)
                 loop n {
                     try {
                         j := A_index + n * (i - 1)
                         subMenu.Add(j, (*) => "")
-                        subMenu.SetIcon(j, f, A_index + n * (i - 1))
+                        subMenu.SetIcon(j, f, j)
                     }
                     catch {
                         subMenu.Delete(j)
@@ -586,6 +569,25 @@ class VSC {
             SetTitleMatchMode(2)
         if WinExist(this.title)
             this.hWnds.Push(WinExist("A"))
+    }
+}
+
+; Load the configuration file.
+LoadConfig() {
+    global devFolderPath, devPrivateLib
+    configFile := A_ScriptDir "\config.ini"
+    if (FileExist(configFile)) {
+        devFolderPath := IniRead(configFile, "Settings", "devFolderPath")
+        devPrivateLib := IniRead(configFile, "Settings", "devPrivateLib")
+    }
+    else {
+        MsgBox("Config file created, it will be opened after pressing OK.`n`n"
+            "Please set your variables.`n`n"
+            "( you can skip this step, and this message will not appear again )"
+            , "rookieAHKcfg - missing config file", 0x40)
+        IniWrite("C:\", configFile, "Settings", "devFolderPath")
+        IniWrite("C:\dev", configFile, "Settings", "devPrivateLib")
+        Run(A_ScriptDir "\config.ini")
     }
 }
 
