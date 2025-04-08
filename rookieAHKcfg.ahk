@@ -3,7 +3,7 @@
 ; Author:    Bence Markiel (bceenaeiklmr)
 ; Github:    https://github.com/bceenaeiklmr/rookieAHKcfg
 ; Date       07.04.2025
-; Version    0.3.2
+; Version    0.3.3
 
 #Requires AutoHotkey v2.0
 #SingleInstance
@@ -572,23 +572,63 @@ class VSC {
     }
 }
 
+;{ Functions:
+
 ; Load the configuration file.
 LoadConfig() {
     global devFolderPath, devPrivateLib
-    configFile := A_ScriptDir "\config.ini"
-    if (FileExist(configFile)) {
-        devFolderPath := IniRead(configFile, "Settings", "devFolderPath")
-        devPrivateLib := IniRead(configFile, "Settings", "devPrivateLib")
+    cfgFile := A_ScriptDir "\config.ini"
+    if (FileExist(cfgFile)) {
+        devFolderPath := IniRead(cfgFile, "Settings", "devFolderPath")
+        devPrivateLib := IniRead(cfgFile, "Settings", "devPrivateLib")
     }
     else {
         MsgBox("Config file created, it will be opened after pressing OK.`n`n"
             "Please set your variables.`n`n"
             "( you can skip this step, and this message will not appear again )"
             , "rookieAHKcfg - missing config file", 0x40)
-        IniWrite("C:\", configFile, "Settings", "devFolderPath")
-        IniWrite("C:\dev", configFile, "Settings", "devPrivateLib")
+        IniWrite("C:\", cfgFile, "Settings", "devFolderPath")
+        IniWrite("C:\dev", cfgFile, "Settings", "devPrivateLib")
+        IniWrite(1, cfgFile, "Settings", "StartupAsked")
+        ScriptToStartup()
         Run(A_ScriptDir "\config.ini")
     }
+    return
+}
+
+; Add/delete the current script to/from startup folder.
+ScriptToStartup(allUser := false, delete := false) {
+
+    local fileName, linkFile, folder, result
+
+    folder := (!allUser) ? A_Startup : A_StartupCommon
+
+    fileName := StrReplace(A_ScriptName, ".ahk")
+    fileName := StrReplace(fileName, ".ah2")
+    linkFile := folder "\" fileName ".lnk"
+
+    if (delete) {
+        if (FileExist(linkFile)) {
+            FileDelete(linkFile)
+            MsgBox("Script removed from startup folder.", fileName, 0x40)
+        }    
+        return
+    }
+
+    if (!FileExist(linkFile)) {
+
+        ; Ask the user if they want to add the script to startup folder.
+        result := MsgBox("Would you like to add the script to startup?`n`n"
+            "( recommended )`n`n"
+            "You can add or remove it from the Windows menu.", fileName, 0x24)
+        
+        if (result == "Yes") {
+            target := A_ScriptDir "\" A_ScriptName
+            FileCreateShortcut(target, linkFile)
+            MsgBox("Script added to startup folder.", fileName, 0x40 " T1")
+        }
+    }
+    return
 }
 
 ; Copy the selected text to the clipboard and return it.
@@ -733,7 +773,7 @@ DateFromCalendarWeek(year := 0, week := 0) {
         isMonday := FormatTime(date++ " L0x9", "WDay")
     }
 
-    ; Caulcate start-end days of the given week.
+    ; Calculate start-end days of the given week.
     start := SubStr(DateAdd(date, (week - 1) * 7, "Days"), 1, 8)
     end := SubStr(DateAdd(start, 6, "Days"), 1, 8)
     return [start, end]
@@ -1128,3 +1168,4 @@ Win32MenuDarkMode(dark := true) {
     DllCall(FlushMenuThemes)
     return
 }
+;} End of functions.
