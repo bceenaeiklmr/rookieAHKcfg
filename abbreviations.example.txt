@@ -1,0 +1,17 @@
+; Abbreviations Dictionary (Template)
+; Format: KEY <Tab> EXPANSION <Tab> OPTIONAL_DESCRIPTION
+; Lines starting with semicolon (;) are comments and ignored.
+;
+; On first launch, rookieAHKcfg will create abbreviations.txt from this template.
+; Add your custom personal/work abbreviations to abbreviations.txt (it is ignored by Git).
+
+ASAP	As Soon As Possible	High urgency indicator
+FYI	For Your Information	Informational notice
+WIP	Work In Progress	Task currently under active development
+TBD	To Be Decided	Pending future decision or clarification
+FAQ	Frequently Asked Questions	Commonly asked questions and answers
+ETA	Estimated Time of Arrival	Expected delivery or completion timestamp
+BRB	Be Right Back	Temporary away status
+PR	Pull Request	Version control change proposal
+URL	Uniform Resource Locator	Web address
+API	Application Programming Interface	Software interface specification

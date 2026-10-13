@@ -2,8 +2,8 @@
 ; License:   MIT License
 ; Author:    Bence Markiel (bceenaeiklmr)
 ; Github:    https://github.com/bceenaeiklmr/MouseWindowManager
-; Date       04.05.2025
-; Version    0.2
+; Date       13.10.2026
+; Version    0.3.0
 
 #Requires AutoHotkey v2.0
 #SingleInstance Force
@@ -39,9 +39,9 @@ AsciiProgressbarTest() {
 ; Generate a horizontal ASCII progress bar.
 AsciiProgressbarHorizontal(current, goal := 100, char := ['◼', '◻'], scale := 1) {
 
-    local progress, str
+    local progress, str := ""
 
-    progress := Round(current / goal * 10)
+    progress := (goal > 0) ? Min(Max(Round(current / goal * 10), 0), 10) : 0
     loop progress * scale {
         str .= char[1]
     }
@@ -61,30 +61,36 @@ CycleWindowSize(increment := 1) {
      ; Store the previous state to detect changes.
     static xywhPrevious := 0
     
-    ; Get monitors.
+    ; Get monitors with work area to respect taskbars.
     monitor := []
     loop MonitorGetCount() {
         try {
-            MonitorGet(A_Index, &left, &top, &right, &bot)
+            MonitorGetWorkArea(A_Index, &left, &top, &right, &bot)
             monitor.Push({x : left, y : top, w : right - left, h : bot - top})
         }
         catch {
-            throw("Monitor " A_Index ", error occurred.")
+            MonitorGet(A_Index, &left, &top, &right, &bot)
+            monitor.Push({x : left, y : top, w : right - left, h : bot - top})
         }
     }
+    if (monitor.Length == 0)
+        return
     
     ; Find which monitor the window is on.
     MouseGetPos(,, &hwnd)
+    if (!hwnd || !WinExist(hwnd))
+        return
     WinGetPos(&x, &y, &w, &h, hwnd)
     
     ; Center.
-    x := x + w / 2
-    y := y + h / 2
+    cx := x + w / 2
+    cy := y + h / 2
     
     ; Find the monitor containing the center of the window.
+    mon := monitor[1]
     for m in monitor {
-        if (x >= m.x && x < m.x + m.w 
-         && y >= m.y && y < m.y + m.h) {
+        if (cx >= m.x && cx < m.x + m.w 
+         && cy >= m.y && cy < m.y + m.h) {
             mon := m
             break
         }
@@ -114,12 +120,12 @@ CycleWindowSize(increment := 1) {
         winState := WinGetMinMax(hwnd)
         SetWinDelay(0)
 
-        ; Window minimized, increment.
+        ; Window restored/normal, increment to 100% -> maximize.
         if (percent = 100 && winState = 0 && increment = 1) {
             WinMaximize(hwnd)
             dontMove := true
         }
-        ; Window maximized, decrement.
+        ; Window maximized, decrement -> restore.
         else if (winState = 1 && increment = 0) {
             WinRestore(hwnd)
         }
@@ -152,18 +158,24 @@ CycleWindowTransparency(increment := 1, step := 17) {
     
     ; Get the window handle under the mouse
     MouseGetPos(,, &hwnd)
+    if (!hwnd || !WinExist(hwnd))
+        return
     
     ; New transparency.
     transp := WinGetTransparent(hwnd)
     transp := (transp == "") ? 255 : transp
     transp += step * (increment ? 1 : -1)
 
-    if (transp > 255)
+    if (transp >= 255) {
         transp := 255
-    else if (transp < step)
-        transp := step
-    
-    WinSetTransparent(transp, hwnd)
+        try WinSetTransparent("Off", hwnd)
+        catch
+            try WinSetTransparent(255, hwnd)
+    } else {
+        if (transp < step)
+            transp := step
+        try WinSetTransparent(transp, hwnd)
+    }
 
     ; Tooltip.
     ToolTip(AsciiProgressbarHorizontal(transp, 255) ' ' Format("{:3}", transp) " / 255")

@@ -1,0 +1,25 @@
+# AutoHotkey & Editor files
+*.log
+*.tmp
+*.bak
+backup/
+
+# Personal / Local files
+todo.md
+abbreviations.txt
+
+# Runtime generated Windows folders
+MasterControlPanel.*
+
+# Python caches (StrTable tests)
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Windows system files
+Thumbs.db
+[Dd]esktop.ini
+
+# IDE & Editor configuration
+.vscode/
+.idea/
