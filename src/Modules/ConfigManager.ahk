@@ -7,6 +7,8 @@ global devPrivateLib := "C:\dev\ahk\private"
 ; Load configuration from config.ini safely with defaults
 LoadConfig() {
     global devFolderPath, devPrivateLib
+    local cfgFile, startupAsked
+
     cfgFile := A_ScriptDir "\config.ini"
 
     if (FileExist(cfgFile)) {
@@ -41,6 +43,7 @@ LoadConfig() {
 
 ; Add/delete the current script to/from the Windows Startup folder
 ScriptToStartup(allUser := false, delete := false) {
+    local folder, baseName, linkFile, result, target
     folder := (!allUser) ? A_Startup : A_StartupCommon
 
     SplitPath(A_ScriptName,,,, &baseName)

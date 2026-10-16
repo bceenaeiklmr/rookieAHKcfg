@@ -64,6 +64,7 @@ class StrTable {
     show_index {
         get => this.__show_index
         set {
+            local offset
             if (value == 1) {
                 if (this.show_index)
                     return
@@ -98,7 +99,7 @@ class StrTable {
             if (value < 0 || value > 1) {
                 return
             }
-            else if (value != this.__to_clipboard) {
+            else if (value !== this.__to_clipboard) {
                 this.__to_clipboard := value
             }
             return
@@ -107,6 +108,7 @@ class StrTable {
     
     ; Add a line with the specified characters
     add_line(char_first := "+", char := "-") {
+        local str
         str := char_first
         loop this.lengths.Length {
             loop this.lengths[A_Index] + 2 * this.padding {
@@ -131,6 +133,7 @@ class StrTable {
 
     ; Calculate padding for a cell
     calculate_padding(i, j) {
+        local regex_center, regex_right, pad, left_pad, right_pad
        
         ; Regex keywords for alignment
         regex_center := "i)^c(ent(er|re)?)?$"
@@ -159,6 +162,7 @@ class StrTable {
 
     ; Convert the data to a string
     convert(limit := 0) {
+        local lines, bytes, str, i, j, padding, header_line, k, cell, h
 
         ; Allocate memory for the string
         lines := (!limit) ? this.data.Length : limit
@@ -166,7 +170,7 @@ class StrTable {
         VarSetStrCapacity(&str, bytes)
         
         ; Open with a decorator line
-        if (this.header[1] != "" && this.header[2] != "") {
+        if (this.header[1] !== "" && this.header[2] !== "") {
             str .= this.add_line(this.header[1], this.header[2])
         }
 
@@ -214,7 +218,7 @@ class StrTable {
                 str := header_line
                 ; In case the bottom line of the header is different
                 h := this.header
-                if (h.Has(3) && h.Has(4) && h[3] != "" && h[4] != "") {
+                if (h.Has(3) && h.Has(4) && h[3] !== "" && h[4] !== "") {
                     h := [h[3], h[4]]
                 }
                 else {
@@ -229,7 +233,7 @@ class StrTable {
         }
         
         ; Append the bottom line
-        if (this.bottom[1] != "" && this.bottom[2] != "") {
+        if (this.bottom[1] !== "" && this.bottom[2] !== "") {
             str .= this.add_line(this.bottom[1], this.bottom[2])
         }
         this.str := SubStr(str, 1, -1)
@@ -261,6 +265,7 @@ class StrTable {
 
     ; Convert a string to a multi-dimensional array
     data_from_str(str) {
+        local data, delim, v
         
         ; Replace CRLF with LF, delete empty lines
         str := StrReplace(str, "`r`n", "`n")
@@ -280,9 +285,9 @@ class StrTable {
     }
 
     ; Validate and convert a single-dimensional array to a multi-d. array
-    data_from_arr(str) {
+    data_from_arr(arr) {
         single_column := True
-        for row in str {
+        for row in arr {
             try for cell in row {
                 if !(Type(cell) ~= "String|Integer|Float") {
                     throw TypeError("Not supported data type: " Type(cell))
@@ -291,20 +296,21 @@ class StrTable {
             }
         }
         if (single_column) {
-            arr := []
-            for row in str {
+            local newArr := []
+            for row in arr {
                 if !(Type(row) ~= "String|Integer|Float") {
                     throw TypeError("Not supported data type: " Type(row))
                 }
-                arr.Push([row])
+                newArr.Push([row])
             }
-            return arr
+            return newArr
         }
-        return str
+        return arr
     }
 
     ; Return the length of the columns in an array
     column_lengths() {
+        local data, maxCols, lengths, i, j, row
 
         data := this.data
         if (data.Length == 0)
@@ -375,7 +381,7 @@ class StrTable {
 
 ; Find the delimiter in a string
 get_delimiter(str) {
-    delimiter := ",;:`t"
+    local delimiter := ",;:`t"
     loop parse, str {
         if (InStr(delimiter, A_LoopField)) {
             return A_LoopField
@@ -385,7 +391,7 @@ get_delimiter(str) {
 
 ; Convert a string to random case
 random_case(str) {
-    s := ""
+    local s := ""
     loop parse, str {
         s .= Format('{:' (Random(0, 1) ? 'U':'L') '}', A_LoopField)
     }
@@ -394,7 +400,7 @@ random_case(str) {
 
 ; Convert a string to an inverse case
 inverse_case(str) {
-    s := ""
+    local s := "", f
     loop parse, str {
         f := A_LoopField
         s .= (f == StrUpper(f) ? StrLower(f) : StrUpper(f))

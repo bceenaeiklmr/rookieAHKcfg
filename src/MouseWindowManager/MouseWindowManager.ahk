@@ -56,7 +56,7 @@ AsciiProgressbarHorizontal(current, goal := 100, char := ['◼', '◻'], scale :
 CycleWindowSize(increment := 1) {
 
     local x, y, w, h, hwnd, mon, left, top, right, bot
-    local dontMove, winDelay, winState, percent, monitor
+    local dontMove, winDelay, winState, percent, monitor, m
     
      ; Store the previous state to detect changes.
     static xywhPrevious := 0
@@ -131,7 +131,7 @@ CycleWindowSize(increment := 1) {
         }
         
         ; Move window to new position.
-        if !IsSet(dontMove) {
+        if (!IsSet(dontMove)) {
             WinMove(x, y, w, h, hwnd)
         }
 

@@ -22,6 +22,7 @@ class W32menu {
 
     ; Show main menu with optional keypress duration (using non-blocking KeyWait)
     static Show(pressDuration := 0) {
+        local key
         if (!pressDuration) {
             this.main.Show()
         } else {
@@ -90,6 +91,7 @@ class W32menu {
 
     ; Windows tools
     static AddWinMenu() {
+        local CLSID, controlPanel
         CLSID := "{ED7BA470-8E54-465E-825C-99712043E01C}"
         controlPanel := A_ScriptDir "\MasterControlPanel." CLSID
         if (!FileExist(controlPanel)) {
@@ -188,6 +190,7 @@ class W32menu {
     ; Visual icon browser
     static PreviewIcons(show := false) {
         static loaded := false
+        local files, icons, iconSub, i, n, subMenuCount, idx, subM, strRange, j, f
         if (!show || loaded)
             return
 
@@ -257,6 +260,7 @@ class W32menu {
 
 ; Launch FanControl profile
 FanControl(cfg) {
+    local path, cfgPath
     path := "C:\Program Files (x86)\FanControl\"
     if (!FileExist(path "FanControl.exe"))
         return
@@ -275,6 +279,7 @@ FanControl(cfg) {
 
 ; Win32 dark menu support (lexikos)
 Win32MenuDarkMode(dark := true) {
+    local uxtheme, SetPreferredAppMode, FlushMenuThemes
     if (VerCompare(A_OSVersion, "10.0.18362") < 0)
         return
 

@@ -2,6 +2,9 @@
 
 ; Center a window within the work area of its current monitor
 WinSetCenter(title := "A", activate := true) {
+    local hwnd, wx, wy, ww, wh, cx, cy
+    local monitorCount, left, top, right, bottom, newX, newY
+
     if (!hwnd := WinExist(title))
         return false
 
@@ -43,6 +46,10 @@ WinSetCenter(title := "A", activate := true) {
 
 ; Move active window to next monitor, preserving maximized state and supporting vertical layouts
 WindowNextMonitor() {
+    local monCount, mon, hwnd, wasMax, x, y, w, h, cx, cy
+    local currentMon, nextMon, target, targetW, targetH, newX, newY
+    local left, top, right, bot
+
     monCount := MonitorGetCount()
     if (monCount <= 1)
         return
@@ -95,18 +102,22 @@ WindowNextMonitor() {
 
 ; Toggle Always-On-Top for active window with visual feedback
 WinToggleAlwaysOnTop(title := "A") {
+    local hwnd, isTop
+
     if (!hwnd := WinExist(title))
         return
 
     WinSetAlwaysOnTop(-1, hwnd)
     isTop := (WinGetExStyle(hwnd) & 0x8) ; WS_EX_TOPMOST
 
-    ToolTip(isTop ? "📌 Always-on-Top: ON" : "Always-on-Top: OFF")
+    ToolTip(isTop ? "Always-on-Top: ON" : "Always-on-Top: OFF")
     SetTimer(() => ToolTip(), -1000)
 }
 
 ; Toggle desktop icons visibility (credit: SKAN)
 DesktopIcons(Show := -1) {
+    local hProgman, hShellDefView, hSysListView
+
     hProgman := WinExist("ahk_class WorkerW", "FolderView") ? WinExist()
              :  WinExist("ahk_class Progman", "FolderView")
 

@@ -38,7 +38,9 @@ ClipboardPaste(str, restore := true, reselect := false) {
 
 ; Copy selected text to clipboard and call transformation function with it
 StrWin32MenuCopy(fn, params*) {
-    local cbSaved := ClipboardAll()
+    local cbSaved, input, result
+
+    cbSaved := ClipboardAll()
 
     A_Clipboard := ""
     Send("{CtrlDown}c{CtrlUp}")
@@ -109,6 +111,8 @@ StrReplaceEmptyLines(str) {
 
 ; Align a string by the given delimiter safely without crashing on uneven lines
 StrAlign(str, delimRow := "`n", delimCol := "|") {
+    local text, maxCols, lengths, ret, line, i, c, col, align
+
     str := StrReplaceEmptyLines(str)
     text := []
     maxCols := 0
@@ -152,6 +156,8 @@ StrAlign(str, delimRow := "`n", delimCol := "|") {
 
 ; Wrap/unwrap selected text with specified delimiter characters
 StrWrap(char, filler := "") {
+    local cbSaved, cb, leftChar, rightChar, leftWrap, rightWrap, leftLen, rightLen, cbLen, isWrapped, outStr
+
     cbSaved := ClipboardAll()
 
     A_Clipboard := ""
@@ -202,6 +208,8 @@ StrWrap(char, filler := "") {
 
 ; Format and word-wrap comment blocks
 StrFormatComment(text, maxLen := 80) {
+    local prefix, match, words, result, currentLine, testLine
+
     if (Trim(text) == "")
         return text
 
@@ -241,6 +249,7 @@ StrFormatComment(text, maxLen := 80) {
 
 ; Split identifiers or phrases into word tokens for casing conversions
 StrExtractWords(str) {
+    local s, words, w
     ; Insert space before uppercase letters in camelCase/PascalCase
     s := RegExReplace(str, "([a-z\d])([A-Z])", "$1 $2")
     ; Replace delimiters with spaces
@@ -248,7 +257,7 @@ StrExtractWords(str) {
     s := Trim(s)
     words := []
     for w in StrSplit(s, " ") {
-        if (w != "")
+        if (w !== "")
             words.Push(Format("{:L}", w))
     }
     return words
@@ -256,6 +265,7 @@ StrExtractWords(str) {
 
 ; camelCase
 StrCamelCase(str) {
+    local words, res
     words := StrExtractWords(str)
     if (words.Length == 0)
         return str
@@ -268,20 +278,22 @@ StrCamelCase(str) {
 
 ; PascalCase
 StrPascalCase(str) {
+    local words, res
     words := StrExtractWords(str)
     res := ""
     for w in words
         res .= Format("{:T}", w)
-    return (res != "") ? res : str
+    return (res !== "") ? res : str
 }
 
 ; snake_case
 StrSnakeCase(str) {
+    local words, res
     words := StrExtractWords(str)
     res := ""
     for i, w in words
         res .= (i > 1 ? "_" : "") w
-    return (res != "") ? res : str
+    return (res !== "") ? res : str
 }
 
 ; SCREAMING_SNAKE_CASE
@@ -289,11 +301,12 @@ StrScreamingSnake(str) => Format("{:U}", StrSnakeCase(str))
 
 ; kebab-case
 StrKebabCase(str) {
+    local words, res, i, w
     words := StrExtractWords(str)
     res := ""
     for i, w in words
         res .= (i > 1 ? "-" : "") w
-    return (res != "") ? res : str
+    return (res !== "") ? res : str
 }
 
 ; Path formatters

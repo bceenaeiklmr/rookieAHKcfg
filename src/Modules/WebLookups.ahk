@@ -2,6 +2,8 @@
 
 ; RFC-3986 compliant UTF-8 URL percent encoder
 UriEncode(str) {
+    local buf, res, byte
+
     if (str == "")
         return ""
 
@@ -26,6 +28,7 @@ UriEncode(str) {
 
 ; Check if a string looks like a web URL
 IsURL(str) {
+    local s
     s := Trim(str)
     if RegExMatch(s, "i)^(https?|ftp|file)://")
         return true
@@ -38,6 +41,7 @@ IsURL(str) {
 
 ; Normalize URL with https scheme if missing
 NormalizeURL(str) {
+    local s
     s := Trim(str)
     if !RegExMatch(s, "i)^[a-z0-9+\.\-]+://")
         s := "https://" . s
@@ -46,6 +50,7 @@ NormalizeURL(str) {
 
 ; Search selected text in Google, or directly open if it's a URL
 SearchSelectedText(save := true) {
+    local cb, url, logLine
     cb := Trim(ClipboardGetText(, 0.25))
     if (cb == "")
         return
@@ -69,6 +74,7 @@ SearchSelectedText(save := true) {
 
 ; Translate selected text with Google Translate
 TranslateWeb(languageDisplay := "en", languageSource := "auto", languageTarget := "auto") {
+    local cb, params
     cb := Trim(ClipboardGetText(, 0.25))
     if (cb == "")
         return
@@ -85,6 +91,7 @@ TranslateWeb(languageDisplay := "en", languageSource := "auto", languageTarget :
 
 ; Open ChatGPT with selected text as pre-filled prompt query
 GptSelectedText(save := true) {
+    local cb, logLine
     cb := Trim(ClipboardGetText(, 0.25))
     if (cb == "")
         return

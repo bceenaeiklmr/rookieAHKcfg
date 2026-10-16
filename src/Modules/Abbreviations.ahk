@@ -2,6 +2,9 @@
 
 ; Expand company/project abbreviations in text
 TranslateAbbreviations(str) {
+    local seen, out, pos, m, key, val, line
+    local dictPath, examplePath, dir, f, keys, escapedKeys, tmp
+
     static abbreviations := Map()
     static pattern := ""
 
@@ -84,6 +87,7 @@ TranslateAbbreviations(str) {
 
 ; Check if an abbreviation is already accompanied by its expansion
 AlreadyExpanded(text, pos, len, key, value) {
+    local before, after
     before := SubStr(text, Max(1, pos - StrLen(value) - 3), StrLen(value) + 3)
     if (RegExMatch(before, RegExEscape(value) "\s*\($"))
         return true
@@ -96,6 +100,7 @@ AlreadyExpanded(text, pos, len, key, value) {
 }
 
 Join(sep, arr) {
+    local out, i, v
     out := ""
     for i, v in arr
         out .= (i > 1 ? sep : "") v

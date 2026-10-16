@@ -7,6 +7,7 @@ class VSC {
     ; Executable path discovery
     static path {
         get {
+            local possiblePaths, p
             if (this.HasOwnProp("__path"))
                 return this.__path
 
@@ -30,6 +31,7 @@ class VSC {
 
     ; Open a new VS Code window instance cleanly via CLI
     static NewInstance(files*) {
+        local cmd, resolved, f
         if (!this.path)
             return
 
@@ -43,6 +45,7 @@ class VSC {
 
     ; Open files in current VS Code instance
     static OpenFiles(files*) {
+        local f, resolved
         if (!this.path)
             return
 
@@ -55,6 +58,7 @@ class VSC {
 
     ; Backup currently open project/file
     static Backup(dest := "") {
+        local filePath, fileName, fileDir, fileExt, nameNoExt, dateStamp, ext, backupFile
         filePath := this.FilePath()
         if (!filePath || !FileExist(filePath))
             return
@@ -75,6 +79,7 @@ class VSC {
 
     ; Project / active file title
     static Project() {
+        local title
         if !WinExist(this.title)
             return ""
         title := WinGetTitle(this.title)
@@ -101,6 +106,7 @@ class VSC {
 
     ; Execute key combinations
     static HK(keys) {
+        local clip, k, v
         clip := (keys ~= "\*") ? 1 : 0
         keys := StrSplit(StrReplace(keys, "*"), "|")
         

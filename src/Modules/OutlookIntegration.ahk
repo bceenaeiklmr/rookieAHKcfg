@@ -2,7 +2,7 @@
 
 ; Toggle read/unread state of selected Outlook items via COM
 OutlookToggleReadState() {
-    local Outlook
+    local Outlook, explorer, mail
 
     try {
         Outlook := ComObjActive("Outlook.Application")

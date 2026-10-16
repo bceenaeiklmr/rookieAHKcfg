@@ -106,8 +106,8 @@ for program in programs {
 
 ; YouTube: Right-click scroll seeking
 #HotIf WinActive("YouTube")
-    RButton & WheelUp::   Send("{Right}")   ; Scroll forward
-    RButton & WheelDown:: Send("{Left}")    ; Scroll backward
+    RButton & WheelUp:: Send("{Left}")      ; Scroll backward
+    RButton & WheelDown:: Send("{Right}")   ; Scroll forward
     $RButton:: Click("Right")
 
 ; Web Browsers
@@ -120,8 +120,8 @@ for program in programs {
 
 ; VLC Media Player
 #HotIf WinActive("VLC media player ahk_exe vlc.exe")
-    RButton & WheelUp::   VlcAcceleratedSeek("Right")
-    RButton & WheelDown:: VlcAcceleratedSeek("Left")
+    RButton & WheelUp::   VlcAcceleratedSeek("Left")
+    RButton & WheelDown:: VlcAcceleratedSeek("Right")
     RButton & XButton1::  Send("p")         ; Previous track
     RButton & XButton2::  Send("n")         ; Next track
     $RButton:: Click("Right")
@@ -149,6 +149,7 @@ for program in programs {
 
 ; Screen capture with fallback to Windows Snipping Tool
 PrintScreen() {
+    local sp
     sp := A_MyDocuments "\AutoHotkey\Lib\OCR\Examples\Example10_OCRScreenSnip.ahk"
     if FileExist(sp) {
         try return RunWait('*Launch "' sp '"')
@@ -158,6 +159,7 @@ PrintScreen() {
 
 ; Format clipboard table with StrTable
 StrTableSelectedText() {
+    local cb
     cb := ClipboardAll()
     A_Clipboard := ""
     Send("^c")
@@ -173,9 +175,10 @@ StrTableSelectedText() {
 
 ; Expand abbreviations in selected text
 AbbreviationsSelectedText() {
+    local cb, text
     cb := ClipboardAll()
     text := ClipboardGetText()
-    if (text != "") {
+    if (text !== "") {
         A_Clipboard := TranslateAbbreviations(text)
         Send("{CtrlDown}v{CtrlUp}")
         Sleep(150)
@@ -185,6 +188,9 @@ AbbreviationsSelectedText() {
 
 ; Accelerated seek for VLC
 VlcAcceleratedSeek(direction) {
+
+    local currentTick, totalSteps
+
     static lastTick := 0
     static stepMultiplier := 1
 
@@ -202,6 +208,8 @@ VlcAcceleratedSeek(direction) {
 
 ; Detect active keyboard layout for wrapping brackets
 GetKeyboardLayout() {
+    local hwnd, thrd, kbrd
+
     if (!WinActive("ahk_group wrap") || WinActive("ahk_group dont_wrap"))
         return ""
 
@@ -229,6 +237,7 @@ GetKeyboardLayout() {
 
 ; Display cheat sheet tooltip
 DisplayHotkeys(timeout := 3000) {
+    local cheatSheet
     cheatSheet := "
     (
     [ rookieAHKcfg Cheat Sheet ]

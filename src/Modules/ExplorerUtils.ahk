@@ -15,6 +15,7 @@ ExplorerFile(i?)  => ((filepath := ExplorerPath(i?)) ? ExplorerSplitPath(filepat
 
 ; Returns active folder path if Explorer or Desktop is focused; otherwise user home directory
 GetTargetWorkingDir() {
+    local dir, home
     try {
         dir := ExplorerDir()
         if (dir != "" && DirExist(dir))
@@ -26,6 +27,7 @@ GetTargetWorkingDir() {
 
 ; Launch Command Prompt (standard or elevated) in target folder
 LaunchCmd(asAdmin := false) {
+    local dir, prefix
     dir := GetTargetWorkingDir()
     prefix := asAdmin ? "*RunAs " : ""
     try Run(prefix 'cmd.exe /K cd /d "' dir '"', dir)
@@ -33,12 +35,14 @@ LaunchCmd(asAdmin := false) {
 
 ; Launch PowerShell (standard or elevated) in target folder
 LaunchPowerShell(asAdmin := false) {
+    local dir, prefix
     dir := GetTargetWorkingDir()
     prefix := asAdmin ? "*RunAs " : ""
     try Run(prefix 'powershell.exe -NoExit -Command "Set-Location -LiteralPath `"' dir '`""', dir)
 }
 
 ExplorerSplitPath(filepath) {
+    local basename, directory, extension, filename, drive
     SplitPath filepath, &basename, &directory, &extension, &filename, &drive
     if (DirExist(filepath)) {
         filename := basename
@@ -56,6 +60,7 @@ ExplorerSplitPath(filepath) {
 }
 
 ExplorerActive(inactive := false) {
+    local hwnd, window, filepath, WinExistOrActive
     if (hwnd := WinActive("ahk_class WorkerW"))
     || (hwnd := WinActive("ahk_class Progman"))
         return [A_Desktop, hwnd]
@@ -76,6 +81,7 @@ ExplorerActive(inactive := false) {
 }
 
 ExplorerActiveTab(hwnd) {
+    local activeTab, IShellBrowser, GetWindow, thisTab, window
     try activeTab := ControlGetHwnd("ShellTabWindowClass1", hwnd) ; Windows 11 File Explorer
     catch
     try activeTab := ControlGetHwnd("TabWindowClass1", hwnd) ; IE / older tabbed explorer
@@ -96,6 +102,7 @@ ExplorerActiveTab(hwnd) {
 }
 
 ExplorerPaths(inactive := false) {
+    local hwnd, window, filepaths, WinExistOrActive, item
     filepaths := []
     WinExistOrActive := (inactive) ? WinExist : WinActive
     if (hwnd := WinExistOrActive("ahk_class ExploreWClass"))
