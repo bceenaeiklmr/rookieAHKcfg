@@ -208,44 +208,83 @@ StrWrap(char, filler := "") {
 
 ; Format and word-wrap comment blocks
 StrFormatComment(text, maxLen := 80) {
-    local prefix, match, words, result, currentLine, testLine
+    local prefix, match, rawLines, cleanLines, line, lineMatch
+    local outputLines, currentPara, res, idx, l
 
     if (Trim(text) == "")
         return text
 
+    ; Detect comment prefix (#, ;, //)
     prefix := ""
     if RegExMatch(text, "^\s*([#;/]+)", &match) {
         prefix := match[1] . A_Space
-        text := RegExReplace(text, "^\s*[#;/]+\s*", "")
     }
 
-    text := RegExReplace(text, "\s+", A_Space)
-    text := Trim(text)
+    ; Normalize newlines
+    text := StrReplace(text, "`r`n", "`n")
+    text := StrReplace(text, "`r", "`n")
+    text := Trim(text, "`n")
 
-    words := StrSplit(text, A_Space)
-    result := ""
-    currentLine := ""
+    rawLines := StrSplit(text, "`n")
+    cleanLines := []
 
-    for _, word in words {
-        testLine := (currentLine == "") ? word : currentLine . A_Space . word
-        if (StrLen(prefix . testLine) <= maxLen) {
-            currentLine := testLine
+    for line in rawLines {
+        if (prefix !== "") {
+            if RegExMatch(line, "^\s*[#;/]+\s*(.*)$", &lineMatch)
+                cleanLines.Push(lineMatch[1])
+            else
+                cleanLines.Push(line)
         } else {
-            if (result !== "")
-                result .= "`n"
-            result .= prefix . currentLine
-            currentLine := word
+            cleanLines.Push(line)
         }
     }
 
-    if (currentLine !== "") {
-        if (result !== "")
-            result .= "`n"
-        result .= prefix . currentLine
+    outputLines := []
+    currentPara := ""
+
+    wrapPara(para) {
+        local words, curLine, tLine, w
+        words := StrSplit(RegExReplace(para, "\s+", A_Space), A_Space)
+        curLine := ""
+        for _, w in words {
+            if (w == "")
+                continue
+            tLine := (curLine == "") ? w : curLine . A_Space . w
+            if (StrLen(prefix . tLine) <= maxLen) {
+                curLine := tLine
+            } else {
+                if (curLine !== "")
+                    outputLines.Push(prefix . curLine)
+                curLine := w
+            }
+        }
+        if (curLine !== "")
+            outputLines.Push(prefix . curLine)
     }
 
-    return result
+    for line in cleanLines {
+        if (Trim(line) == "") {
+            if (currentPara !== "") {
+                wrapPara(currentPara)
+                currentPara := ""
+            }
+            outputLines.Push("")
+        } else {
+            currentPara := (currentPara == "") ? Trim(line) : currentPara . A_Space . Trim(line)
+        }
+    }
+
+    if (currentPara !== "")
+        wrapPara(currentPara)
+
+    res := ""
+    for idx, l in outputLines
+        res .= (idx == 1 ? "" : "`n") . l
+
+    return res
 }
+
+FormatComment(text, maxLen := 80) => StrFormatComment(text, maxLen)
 
 ; Split identifiers or phrases into word tokens for casing conversions
 StrExtractWords(str) {

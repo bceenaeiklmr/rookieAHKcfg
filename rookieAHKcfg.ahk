@@ -2,8 +2,8 @@
 ; License:   MIT License
 ; Author:    Bence Markiel (bceenaeiklmr)
 ; Github:    https://github.com/bceenaeiklmr/rookieAHKcfg
-; Date       13.10.2026
-; Version    0.6.0
+; Date       30.10.2026
+; Version    0.6.1
 
 #Requires AutoHotkey v2.0
 #SingleInstance Force
@@ -106,7 +106,9 @@ for program in programs {
 
 ; YouTube: Right-click scroll seeking
 #HotIf WinActive("YouTube")
-    RButton & WheelUp:: Send("{Left}")      ; Scroll backward
+    RButton & XButton1::  Send("^{w}")      ; Close current tab
+    RButton & XButton2::  Send("^{t}")      ; Open new tab
+    RButton & WheelUp::   Send("{Left}")    ; Scroll backward
     RButton & WheelDown:: Send("{Right}")   ; Scroll forward
     $RButton:: Click("Right")
 
