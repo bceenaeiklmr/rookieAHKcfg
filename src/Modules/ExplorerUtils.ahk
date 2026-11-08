@@ -123,3 +123,37 @@ ExplorerPaths(inactive := false) {
     }
     return filepaths
 }
+
+
+; Refresh open Explorer windows and desktop
+RefreshExplorer() {
+    local hwnd
+    for hwnd in WinGetList("ahk_class CabinetWClass")
+        PostMessage(0x0111, 41504, 0, , hwnd)
+    for hwnd in WinGetList("ahk_class ExploreWClass")
+        PostMessage(0x0111, 41504, 0, , hwnd)
+    try PostMessage(0x0111, 41504, 0, , "ahk_class Progman")
+    try PostMessage(0x0111, 41504, 0, , "ahk_class WorkerW")
+}
+
+; Toggle visibility of hidden files in Explorer
+ToggleHiddenFiles() {
+    local regKey := "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
+    local current := RegRead(regKey, "Hidden", 2)
+    local newVal := (current == 1) ? 2 : 1
+    RegWrite(newVal, "REG_DWORD", regKey, "Hidden")
+    RefreshExplorer()
+    ToolTip("Hidden files: " (newVal == 1 ? "Shown" : "Hidden"))
+    SetTimer(() => ToolTip(), -2000)
+}
+
+; Toggle visibility of file extensions in Explorer
+ToggleFileExtensions() {
+    local regKey := "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
+    local current := RegRead(regKey, "HideFileExt", 1)
+    local newVal := (current == 0) ? 1 : 0
+    RegWrite(newVal, "REG_DWORD", regKey, "HideFileExt")
+    RefreshExplorer()
+    ToolTip("File extensions: " (newVal == 0 ? "Shown" : "Hidden"))
+    SetTimer(() => ToolTip(), -2000)
+}

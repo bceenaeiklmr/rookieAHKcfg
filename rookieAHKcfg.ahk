@@ -18,6 +18,7 @@
 
 ; rookieAHKcfg Core Modules
 #include src/Modules/ConfigManager.ahk
+#include src/Modules/SystemCare.ahk
 #include src/Modules/TextTools.ahk
 #include src/Modules/WindowOps.ahk
 #include src/Modules/WebLookups.ahk
@@ -56,6 +57,7 @@ for program in programs {
 #q:: GptSelectedText()                      ; Win + Q, open ChatGPT with selected text
 ^#c:: DesktopIcons(-1)                      ; Ctrl + Win + C, toggle desktop icons
 ^#x:: WindowNextMonitor()                   ; Ctrl + Win + X, move window to next monitor
+^#m:: ToggleMicMute()                       ; Ctrl + Win + M, toggle microphone mute
 #F1:: DisplayHotkeys()                      ; Win + F1, display cheat sheet
 #PrintScreen:: PrintScreen()                ; Win + PrintScreen, capture snip
 
@@ -247,14 +249,15 @@ DisplayHotkeys(timeout := 3000) {
       Win + WheelUp/Down   : Resize Window (10% increments)
       Win + Alt + Wheel    : Adjust Window Transparency
 
-    Window Control:
+    Window & System Control:
       Win + W              : Center Active Window on Current Monitor
       Win + A              : Toggle Always-on-Top (Pinned)
       Ctrl + Win + X       : Move Window to Next Monitor
       Ctrl + Win + C       : Toggle Desktop Icons
+      Ctrl + Win + M       : Toggle Microphone Mute
 
     Menus & Search:
-      Middle Mouse (400ms) : Show Main Win32 Menu
+      Middle Mouse (400ms) : Show Main Win32 Menu (System, Window, VSC, Strings)
       Win + C              : Show Main Win32 Menu
       Win + G              : Open URL or Google Search Selected Text
       Win + T              : Google Translate Selected Text

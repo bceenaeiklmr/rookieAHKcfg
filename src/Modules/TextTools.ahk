@@ -316,3 +316,134 @@ StrPathEscaped(str) => StrReplace(StrReplace(str, "/", "\"), "\", "\\")
 
 ; Return current date and time
 DateNow(fmt := "dd.MM.yy. HH:mm:ss") => FormatTime(A_Now, fmt)
+
+
+; Dedupe consecutive spaces and tabs while trimming line boundaries
+StrDedupeSpaces(str) {
+    str := RegExReplace(str, "[ \t]+", " ")
+    return RegExReplace(str, "m)^ +| +$", "")
+}
+
+; Trim leading and trailing whitespace from every line
+StrTrimLines(str) {
+    local res := ""
+    loop parse str, "`n", "`r"
+        res .= (A_Index > 1 ? "`n" : "") . Trim(A_LoopField)
+    return res
+}
+
+; Remove duplicate lines while preserving original line order
+StrDedupeLines(str) {
+    local seen := Map(), res := ""
+    loop parse str, "`n", "`r" {
+        if (!seen.Has(A_LoopField)) {
+            seen[A_LoopField] := true
+            res .= (res !== "" ? "`n" : "") . A_LoopField
+        }
+    }
+    return res
+}
+
+; Convert rich-text/HTML clipboard contents into pure plaintext
+StrStripFormatting() {
+    A_Clipboard := A_Clipboard
+    ToolTip("Clipboard stripped to plain text")
+    SetTimer(() => ToolTip(), -2000)
+}
+
+; Wrap text with specified left and right strings
+StrWrapWith(str, leftWrap, rightWrap := "") {
+    if (rightWrap == "")
+        rightWrap := leftWrap
+    return leftWrap . str . rightWrap
+}
+
+; URL Encode
+StrUrlEncode(str) {
+    local var := Buffer(StrPut(str, "UTF-8")), f := "%{:02X}", res := ""
+    StrPut(str, var, "UTF-8")
+    loop var.Size - 1 {
+        local b := NumGet(var, A_Index - 1, "UChar")
+        if ((b >= 0x30 && b <= 0x39) || (b >= 0x41 && b <= 0x5A) || (b >= 0x61 && b <= 0x7A) || b == 0x2D || b == 0x5F || b == 0x2E || b == 0x7E)
+            res .= Chr(b)
+        else
+            res .= Format(f, b)
+    }
+    return res
+}
+
+; URL Decode
+StrUrlDecode(str) {
+    local buf := Buffer(StrPut(str, "UTF-16") * 2)
+    StrPut(str, buf, "UTF-16")
+    DllCall("shlwapi\UrlUnescapeW", "Ptr", buf, "Ptr", 0, "UInt*", 0, "UInt", 0x00100000)
+    return StrGet(buf, "UTF-16")
+}
+
+; Base64 Encode (UTF-8 binary to Base64)
+StrBase64Encode(str) {
+    local buf := Buffer(StrPut(str, "UTF-8")), len := buf.Size - 1
+    StrPut(str, buf, "UTF-8")
+    local reqLen := 0
+    DllCall("crypt32\CryptBinaryToStringW", "Ptr", buf, "UInt", len, "UInt", 0x40000001, "Ptr", 0, "UInt*", &reqLen)
+    local outBuf := Buffer(reqLen * 2)
+    DllCall("crypt32\CryptBinaryToStringW", "Ptr", buf, "UInt", len, "UInt", 0x40000001, "Ptr", outBuf, "UInt*", &reqLen)
+    return StrGet(outBuf)
+}
+
+; Base64 Decode (Base64 to UTF-8 string)
+StrBase64Decode(b64) {
+    local reqBytes := 0
+    DllCall("crypt32\CryptStringToBinaryW", "Str", b64, "UInt", StrLen(b64), "UInt", 1, "Ptr", 0, "UInt*", &reqBytes, "Ptr", 0, "Ptr", 0)
+    if (!reqBytes)
+        return b64
+    local outBuf := Buffer(reqBytes)
+    DllCall("crypt32\CryptStringToBinaryW", "Str", b64, "UInt", StrLen(b64), "UInt", 1, "Ptr", outBuf, "UInt*", &reqBytes, "Ptr", 0, "Ptr", 0)
+    return StrGet(outBuf, "UTF-8")
+}
+
+; Escape string for JSON payload
+StrEscapeJson(str) {
+    str := StrReplace(str, "\", "\\")
+    str := StrReplace(str, '"', '\"')
+    str := StrReplace(str, "`r", "\r")
+    str := StrReplace(str, "`n", "\n")
+    str := StrReplace(str, "`t", "\t")
+    return str
+}
+
+; Evaluate simple math expressions in text
+StrCalculate(expr) {
+    local cleaned := RegExReplace(expr, "[^0-9\.\+\-\*\/\(\)\%\s]", "")
+    if (Trim(cleaned) == "")
+        return expr
+    try {
+        local doc := ComObject("htmlfile")
+        doc.write("<meta http-equiv='X-UA-Compatible' content='IE=edge'>")
+        local res := doc.parentWindow.eval(cleaned)
+        return String(res)
+    } catch {
+        return expr
+    }
+}
+
+; Display character, word, line, and byte metrics
+StrInspect(str) {
+    local chars := StrLen(str)
+    local words := 0
+    local lines := 0
+    local bytes := StrPut(str, "UTF-8") - 1
+
+    loop parse str, "`n", "`r"
+        lines++
+
+    RegExReplace(Trim(str), "\S+", "", &words)
+
+    local info := Format(
+        "[ Text Statistics ]`n`nCharacters: {:d}`nWords: {:d}`nLines: {:d}`nUTF-8 Bytes: {:d}",
+        chars, words, lines, bytes
+    )
+    ToolTip(info)
+    SetTimer(() => ToolTip(), -3000)
+    return str
+}

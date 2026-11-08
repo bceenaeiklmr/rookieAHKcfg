@@ -8,7 +8,12 @@ class W32menu {
     static strings := ""
     static devCases := ""
     static paths := ""
+    static wrapWith := ""
+    static encoders := ""
     static terminals := ""
+    static drives := ""
+    static maintenance := ""
+    static network := ""
     static fan := ""
 
     ; Enable or disable dark mode
@@ -43,6 +48,8 @@ class W32menu {
         this.strings := Menu()
         this.devCases := Menu()
         this.paths := Menu()
+        this.wrapWith := Menu()
+        this.encoders := Menu()
 
         this.main.Add("System", this.sys)
         this.main.Add("Windows", this.win)
@@ -57,8 +64,60 @@ class W32menu {
         this.main.SetIcon("String", "shell32.dll", 260)
     }
 
-    ; System shortcuts
+    ; System shortcuts, storage & maintenance
     static AddSysMenu() {
+        ; Drives & Storage Submenu
+        this.drives := Menu()
+        local driveList := GetDrivesInfo()
+        for d in driveList {
+            local letter := d.letter
+            this.drives.Add(d.label, ((l, *) => Run(l ":\")).Bind(letter))
+            this.drives.SetIcon(d.label, "shell32.dll", 9)
+        }
+        if (driveList.Length > 0)
+            this.drives.Add() ; Separator
+        this.drives.Add("Storage Settings", (*) => Run("ms-settings:storagesense"))
+        this.drives.SetIcon("Storage Settings", "shell32.dll", 315)
+
+        ; Safe Maintenance Submenu
+        this.maintenance := Menu()
+        this.maintenance.Add("Empty Recycle Bin",       (*) => EmptyRecycleBinWithStats())
+        this.maintenance.Add("Purge Stale Temp (>48h)",  (*) => PurgeStaleTemp(2))
+        this.maintenance.Add("Restart Explorer",        (*) => RestartExplorer())
+        this.maintenance.Add("Flush DNS Cache",         (*) => FlushDNS())
+        this.maintenance.Add("Reboot to UEFI / BIOS",   (*) => RebootToUEFI())
+
+        this.maintenance.SetIcon("Empty Recycle Bin",       "imageres.dll", 50)
+        this.maintenance.SetIcon("Purge Stale Temp (>48h)", "shell32.dll", 142)
+        this.maintenance.SetIcon("Restart Explorer",        "shell32.dll", 239)
+        this.maintenance.SetIcon("Flush DNS Cache",         "shell32.dll", 14)
+        this.maintenance.SetIcon("Reboot to UEFI / BIOS",   "shell32.dll", 215)
+
+        ; Network Submenu
+        this.network := Menu()
+        this.network.Add("Copy Local IP",         (*) => CopyLocalIP())
+        this.network.Add("Ping Test (1.1.1.1)",    (*) => PingTest("1.1.1.1"))
+        this.network.Add("Flush DNS Cache",        (*) => FlushDNS())
+        this.network.Add("Network Connections",    (*) => Run("ncpa.cpl"))
+
+        this.network.SetIcon("Copy Local IP",      "shell32.dll", 14)
+        this.network.SetIcon("Ping Test (1.1.1.1)", "shell32.dll", 18)
+        this.network.SetIcon("Flush DNS Cache",     "shell32.dll", 239)
+        this.network.SetIcon("Network Connections", "netcenter.dll", 1)
+
+        ; Add Submenus to System
+        this.sys.Add("Drives",          this.drives)
+        this.sys.Add("Maintenance",     this.maintenance)
+        this.sys.Add("Network",         this.network)
+        this.sys.Add("Toggle Mic Mute`tCtrl+Win+M", (*) => ToggleMicMute())
+
+        this.sys.SetIcon("Drives",          "shell32.dll", 9)
+        this.sys.SetIcon("Maintenance",     "imageres.dll", 66)
+        this.sys.SetIcon("Network",         "shell32.dll", 18)
+        this.sys.SetIcon("Toggle Mic Mute`tCtrl+Win+M", "mmres.dll", 2)
+        this.sys.Add() ; Separator
+
+        ; Folder shortcuts
         this.sys.Add("My computer",  (*) => Run("::{20D04FE0-3AEA-1069-A2D8-08002B30309D}"))
         this.sys.Add("Recycle bin",  (*) => Run("::{645FF040-5081-101B-9F08-00AA002F954E}"))
         this.sys.Add("Downloads",    (*) => Run(A_MyDocuments "\..\Downloads"))
@@ -114,16 +173,20 @@ class W32menu {
         this.terminals.SetIcon("PowerShell (Admin)",     "powershell.exe", 1)
 
         this.win.Add("Terminals", this.terminals)
-        this.win.Add("Always on Top`tWin+A", (*) => WinToggleAlwaysOnTop())
-        this.win.Add("Hide Desktop Icons", (*) => Run(A_ScriptDir "/src/HideMyIcon/HideMyIcon_Gui.ahk"))
-        this.win.Add("Master Control Panel", (*) => Run("shell:::" CLSID))
-        this.win.Add("Registry Editor", (*) => Run("regedit.exe"))
+        this.win.Add("Always on Top`tWin+A",    (*) => WinToggleAlwaysOnTop())
+        this.win.Add("Hidden Files`tToggle",    (*) => ToggleHiddenFiles())
+        this.win.Add("File Extensions`tToggle", (*) => ToggleFileExtensions())
+        this.win.Add("Hide Desktop Icons",       (*) => Run(A_ScriptDir "/src/HideMyIcon/HideMyIcon_Gui.ahk"))
+        this.win.Add("Master Control Panel",     (*) => Run("shell:::" CLSID))
+        this.win.Add("Registry Editor",          (*) => Run("regedit.exe"))
 
-        this.win.SetIcon("Terminals", "cmd.exe", 1)
-        this.win.SetIcon("Always on Top`tWin+A", "shell32.dll", 248)
-        this.win.SetIcon("Hide Desktop Icons", "shell32.dll", 70)
-        this.win.SetIcon("Master Control Panel", "shell32.dll", 315)
-        this.win.SetIcon("Registry Editor", "shell32.dll", 77)
+        this.win.SetIcon("Terminals",              "cmd.exe", 1)
+        this.win.SetIcon("Always on Top`tWin+A",    "shell32.dll", 248)
+        this.win.SetIcon("Hidden Files`tToggle",    "shell32.dll", 70)
+        this.win.SetIcon("File Extensions`tToggle", "shell32.dll", 71)
+        this.win.SetIcon("Hide Desktop Icons",      "shell32.dll", 70)
+        this.win.SetIcon("Master Control Panel",     "shell32.dll", 315)
+        this.win.SetIcon("Registry Editor",          "shell32.dll", 77)
     }
 
     ; VS Code actions
@@ -156,6 +219,8 @@ class W32menu {
 
     ; String transformations & developer helpers
     static AddStrMenu() {
+        local bt := Chr(96)
+
         ; Developer Cases Submenu
         this.devCases.Add("camelCase",       (*) => StrWin32MenuCopy("StrCamelCase"))
         this.devCases.Add("PascalCase",      (*) => StrWin32MenuCopy("StrPascalCase"))
@@ -168,8 +233,35 @@ class W32menu {
         this.paths.Add("Backslash (\)",     (*) => StrWin32MenuCopy("StrPathBackslash"))
         this.paths.Add("Escaped (\\)",      (*) => StrWin32MenuCopy("StrPathEscaped"))
 
-        this.strings.Add("Developer Cases", this.devCases)
-        this.strings.Add("Path Format",     this.paths)
+        ; Wrap With Submenu
+        this.wrapWith.Add('Double Quotes "..."',      (*) => StrWin32MenuCopy("StrWrapWith", '"'))
+        this.wrapWith.Add("Single Quotes '...'",      (*) => StrWin32MenuCopy("StrWrapWith", "'"))
+        this.wrapWith.Add("Parentheses (...)",        (*) => StrWin32MenuCopy("StrWrapWith", "(", ")"))
+        this.wrapWith.Add("Square Brackets [...]",    (*) => StrWin32MenuCopy("StrWrapWith", "[", "]"))
+        this.wrapWith.Add("Curly Braces {...}",       (*) => StrWin32MenuCopy("StrWrapWith", "{", "}"))
+        this.wrapWith.Add("Backticks " bt "..." bt,   (*) => StrWin32MenuCopy("StrWrapWith", bt))
+        this.wrapWith.Add("Markdown Bold **...**",    (*) => StrWin32MenuCopy("StrWrapWith", "**"))
+        this.wrapWith.Add("Markdown Code Block",      (*) => StrWin32MenuCopy("StrWrapWith", bt bt bt "`n", "`n" bt bt bt))
+
+        ; Encoders Submenu
+        this.encoders.Add("URL Encode",               (*) => StrWin32MenuCopy("StrUrlEncode"))
+        this.encoders.Add("URL Decode",               (*) => StrWin32MenuCopy("StrUrlDecode"))
+        this.encoders.Add("Base64 Encode",            (*) => StrWin32MenuCopy("StrBase64Encode"))
+        this.encoders.Add("Base64 Decode",            (*) => StrWin32MenuCopy("StrBase64Decode"))
+        this.encoders.Add("Escape JSON",              (*) => StrWin32MenuCopy("StrEscapeJson"))
+
+        this.strings.Add("Developer Cases",  this.devCases)
+        this.strings.Add("Path Format",      this.paths)
+        this.strings.Add("Wrap With...",     this.wrapWith)
+        this.strings.Add("Encoders",         this.encoders)
+        this.strings.Add() ; Separator
+
+        this.strings.Add("Calculate Expression",  (*) => StrWin32MenuCopy("StrCalculate"))
+        this.strings.Add("Inspect / Statistics",  (*) => StrWin32MenuCopy("StrInspect"))
+        this.strings.Add("Strip Formatting",      (*) => StrStripFormatting())
+        this.strings.Add("Dedupe Spaces",         (*) => StrWin32MenuCopy("StrDedupeSpaces"))
+        this.strings.Add("Trim Lines",            (*) => StrWin32MenuCopy("StrTrimLines"))
+        this.strings.Add("Dedupe Lines (Unique)", (*) => StrWin32MenuCopy("StrDedupeLines"))
         this.strings.Add() ; Separator
 
         this.strings.Add("Sort`tabc",          (*) => StrWin32MenuCopy("Sort"))
