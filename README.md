@@ -86,12 +86,14 @@ rookieAHKcfg/
 │   │   ├── VSCIntegration.ahk     # Visual Studio Code CLI instance & backup controls
 │   │   ├── W32MenuManager.ahk     # Win32 dark menu, icon browser, conditional fan control
 │   │   ├── Abbreviations.ahk      # Safe abbreviation expander
-│   │   └── OutlookIntegration.ahk # Scoped Outlook read/unread COM toggle
+│   │   ├── OutlookIntegration.ahk # Scoped Outlook read/unread COM toggle
+│   │   └── TrayManager.ahk        # Custom system tray menu & diagnostics
 │   │
 │   ├── MouseWindowManager/        # Upstream standalone mouse resize & transparency tool
 │   ├── SendTextZ/                 # Upstream standalone text & emoji hotstrings engine
 │   ├── HideMyIcon/                # Upstream standalone desktop icon auto-hider & GUI
-│   └── StrTable/                  # Upstream standalone ASCII table generator
+│   ├── StrTable/                  # Upstream standalone ASCII table generator
+│   └── Worktime/                  # Upstream standalone worktime tracker & statistics
 ```
 
 ---
@@ -103,6 +105,7 @@ The subdirectories in `src/` are maintained as standalone repositories:
 - [**SendTextZ**](https://github.com/bceenaeiklmr/SendTextZ) - Text snippets, Roman numerals, ASCII art, and symbols.
 - [**HideMyIcon**](https://github.com/bceenaeiklmr/HideMyIcon) - Desktop icon fader with GpGFX quadratic ease-out transitions.
 - [**StrTable**](https://github.com/bceenaeiklmr/StrTable) - ASCII/Markdown table generator (AutoHotkey & Python).
+- **Worktime** - Daily worktime tracker, statistics dashboard, and missing hours scanner.
 
 ---
 

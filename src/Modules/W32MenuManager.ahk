@@ -25,17 +25,43 @@ class W32menu {
         }
     }
 
-    ; Show main menu with optional keypress duration (using non-blocking KeyWait)
+    ; Show main menu with optional keypress duration (stationary check for mouse keys)
     static Show(pressDuration := 0) {
-        local key
+        local key, isMouseKey, startX, startY, curX, curY, startTime, threshold
+
         if (!pressDuration) {
             this.main.Show()
-        } else {
-            key := RegExReplace(A_ThisHotkey, "^[~*$#+^!]+")
-            if !KeyWait(key, "T" (pressDuration / 1000)) {
-                this.main.Show()
-                KeyWait(key)
+            return
+        }
+
+        key := RegExReplace(A_ThisHotkey, "i)^[~*$#+^!]+|\s+up$")
+        if (key == "") {
+            this.main.Show()
+            return
+        }
+
+        isMouseKey := (key ~= "i)^(LButton|RButton|MButton|XButton1|XButton2)$")
+        if (isMouseKey) {
+            MouseGetPos(&startX, &startY)
+            threshold := 10
+            startTime := A_TickCount
+            while GetKeyState(key, "P") {
+                MouseGetPos(&curX, &curY)
+                if (Abs(curX - startX) > threshold || Abs(curY - startY) > threshold)
+                    return
+                if (A_TickCount - startTime >= pressDuration) {
+                    this.main.Show()
+                    KeyWait(key)
+                    return
+                }
+                Sleep(20)
             }
+            return
+        }
+
+        if !KeyWait(key, "T" (pressDuration / 1000)) {
+            this.main.Show()
+            KeyWait(key)
         }
     }
 
