@@ -28,6 +28,8 @@ class TrayManager {
         ; Tools Submenu
         toolsMenu := Menu()
         toolsMenu.Add("Hide Desktop Icons (GUI)", (*) => Run(A_ScriptDir "/src/HideMyIcon/HideMyIcon_Gui.ahk"))
+        toolsMenu.Add("Mouse Trail`tCtrl+Win+F2", (*) => MouseTrail.Toggle())
+        toolsMenu.Add("Mouse Trail: Next Mode`tCtrl+Win+Alt+F2", (*) => MouseTrail.NextMode())
         if (W32menu.HasFanControl()) {
             fanSub := Menu()
             fanSub.Add("Silent",    (*) => FanControl("Silent"))
@@ -99,6 +101,8 @@ class TrayManager {
             tray.SetIcon("Exit", "shell32.dll", 132)
 
             toolsMenu.SetIcon("Hide Desktop Icons (GUI)", "shell32.dll", 70)
+            toolsMenu.SetIcon("Mouse Trail`tCtrl+Win+F2", "main.cpl", 1)
+            toolsMenu.SetIcon("Mouse Trail: Next Mode`tCtrl+Win+Alt+F2", "shell32.dll", 239)
             if (W32menu.HasFanControl())
                 toolsMenu.SetIcon("Fan Control", "shell32.dll", 13)
             toolsMenu.SetIcon("Window Spy", "shell32.dll", 23)

@@ -29,6 +29,7 @@
 #include src/Modules/Abbreviations.ahk
 #include src/Modules/OutlookIntegration.ahk
 #include src/Modules/TrayManager.ahk
+#include src/Modules/MouseTrail.ahk
 
 ; Initialization
 
@@ -61,6 +62,8 @@ for program in programs {
 ^#c:: DesktopIcons(-1)                      ; Ctrl + Win + C, toggle desktop icons
 ^#x:: WindowNextMonitor()                   ; Ctrl + Win + X, move window to next monitor
 ^#m:: ToggleMicMute()                       ; Ctrl + Win + M, toggle microphone mute
+^#F2:: MouseTrail.Toggle()                  ; Ctrl + Win + F2, toggle mouse trail
+^#!F2:: MouseTrail.NextMode()               ; Ctrl + Win + Alt + F2, switch mouse trail mode
 #F1:: DisplayHotkeys()                      ; Win + F1, display cheat sheet
 #PrintScreen:: PrintScreen()                ; Win + PrintScreen, capture snip
 
@@ -260,6 +263,8 @@ DisplayHotkeys(timeout := 3000) {
       Ctrl + Win + X       : Move Window to Next Monitor
       Ctrl + Win + C       : Toggle Desktop Icons
       Ctrl + Win + M       : Toggle Microphone Mute
+      Ctrl + Win + F2      : Toggle Mouse Trail (Stardust / Ribbon / Swarm)
+      Ctrl + Win + Alt + F2: Switch Mouse Trail Mode
 
     Menus & Search:
       Middle Mouse (400ms) : Show Main Win32 Menu (System, Window, VSC, Strings)

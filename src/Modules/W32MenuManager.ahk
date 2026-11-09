@@ -203,6 +203,7 @@ class W32menu {
         this.win.Add("Hidden Files`tToggle",    (*) => ToggleHiddenFiles())
         this.win.Add("File Extensions`tToggle", (*) => ToggleFileExtensions())
         this.win.Add("Hide Desktop Icons",       (*) => Run(A_ScriptDir "/src/HideMyIcon/HideMyIcon_Gui.ahk"))
+        this.win.Add("Mouse Trail`tCtrl+Win+F2", (*) => MouseTrail.Toggle())
         this.win.Add("Master Control Panel",     (*) => Run("shell:::" CLSID))
         this.win.Add("Registry Editor",          (*) => Run("regedit.exe"))
 
@@ -211,6 +212,7 @@ class W32menu {
         this.win.SetIcon("Hidden Files`tToggle",    "shell32.dll", 70)
         this.win.SetIcon("File Extensions`tToggle", "shell32.dll", 71)
         this.win.SetIcon("Hide Desktop Icons",      "shell32.dll", 70)
+        this.win.SetIcon("Mouse Trail`tCtrl+Win+F2", "main.cpl", 1)
         this.win.SetIcon("Master Control Panel",     "shell32.dll", 315)
         this.win.SetIcon("Registry Editor",          "shell32.dll", 77)
     }
