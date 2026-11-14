@@ -5,6 +5,16 @@ global devFolderPath := "C:\dev"
 global devPrivateLib := "C:\dev\ahk\private"
 global enableKillOtherAHK := true
 
+class ConfigManager {
+    static KillOtherAHK {
+        get {
+            local cfgFile := A_ScriptDir "\config.ini"
+            try return (Integer(IniRead(cfgFile, "Settings", "KillOtherAHK", "1")) != 0)
+            return true
+        }
+    }
+}
+
 ; Load configuration from config.ini safely with defaults
 LoadConfig() {
     global devFolderPath, devPrivateLib, enableKillOtherAHK
@@ -16,7 +26,7 @@ LoadConfig() {
         devFolderPath := IniRead(cfgFile, "Settings", "devFolderPath", "C:\dev")
         devPrivateLib := IniRead(cfgFile, "Settings", "devPrivateLib", "C:\dev\ahk\private")
         startupAsked := Integer(IniRead(cfgFile, "Settings", "StartupAsked", "0"))
-        enableKillOtherAHK := Boolean(Integer(IniRead(cfgFile, "Settings", "KillOtherAHK", "1")))
+        enableKillOtherAHK := (Integer(IniRead(cfgFile, "Settings", "KillOtherAHK", "1")) != 0)
         
         ; If startup wasn't configured yet, prompt once
         if (!startupAsked) {
