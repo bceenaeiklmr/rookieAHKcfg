@@ -45,6 +45,8 @@ class TrayManager {
         ; Script Lifecycle
         tray.Add("Reload Script", (*) => Reload())
         tray.Add("Suspend Hotkeys", (ItemName, ItemPos, MyMenu) => this.ToggleSuspend(ItemName, MyMenu))
+        if (enableKillOtherAHK)
+            tray.Add("Kill Other AHK Scripts", (*) => KillOtherAHK())
         tray.Add("Exit", (*) => ExitApp())
 
         ; Assign menu icons
@@ -98,6 +100,8 @@ class TrayManager {
             tray.SetIcon("Tools", "shell32.dll", 37)
             tray.SetIcon("Reload Script", "shell32.dll", 239)
             tray.SetIcon("Suspend Hotkeys", "shell32.dll", 110)
+            if (enableKillOtherAHK)
+                tray.SetIcon("Kill Other AHK Scripts", "shell32.dll", 132)
             tray.SetIcon("Exit", "shell32.dll", 132)
 
             toolsMenu.SetIcon("Hide Desktop Icons (GUI)", "shell32.dll", 70)

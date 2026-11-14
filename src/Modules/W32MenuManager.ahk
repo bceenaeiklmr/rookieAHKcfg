@@ -111,12 +111,16 @@ class W32menu {
         this.maintenance.Add("Purge Stale Temp (>48h)",  (*) => PurgeStaleTemp(2))
         this.maintenance.Add("Restart Explorer",        (*) => RestartExplorer())
         this.maintenance.Add("Flush DNS Cache",         (*) => FlushDNS())
+        if (enableKillOtherAHK)
+            this.maintenance.Add("Kill Other AHK Scripts", (*) => KillOtherAHK())
         this.maintenance.Add("Reboot to UEFI / BIOS",   (*) => RebootToUEFI())
 
         this.maintenance.SetIcon("Empty Recycle Bin",       "imageres.dll", 50)
         this.maintenance.SetIcon("Purge Stale Temp (>48h)", "shell32.dll", 142)
         this.maintenance.SetIcon("Restart Explorer",        "shell32.dll", 239)
         this.maintenance.SetIcon("Flush DNS Cache",         "shell32.dll", 14)
+        if (enableKillOtherAHK)
+            this.maintenance.SetIcon("Kill Other AHK Scripts", "shell32.dll", 132)
         this.maintenance.SetIcon("Reboot to UEFI / BIOS",   "shell32.dll", 215)
 
         ; Network Submenu

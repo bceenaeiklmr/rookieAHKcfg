@@ -235,3 +235,36 @@ PingTest(host := "1.1.1.1") {
     }
     SetTimer(() => ToolTip(), -3000)
 }
+
+/**
+ * Terminate all other AutoHotkey background processes except rookieAHKcfg.
+ * @param {Boolean} [showTip=true] Whether to display a status ToolTip.
+ * @returns {Integer} Count of terminated processes.
+ */
+KillOtherAHK(showTip := true) {
+    local myPid, count, proc, cmdLine
+    count := 0
+    myPid := DllCall("GetCurrentProcessId", "uint")
+
+    try {
+        for proc in ComObjGet("winmgmts:").ExecQuery("Select ProcessId, Name, CommandLine from Win32_Process where Name like 'AutoHotkey%'") {
+            if (proc.ProcessId != myPid) {
+                cmdLine := ""
+                try cmdLine := proc.CommandLine
+                if (!InStr(cmdLine, "rookieAHKcfg.ahk")) {
+                    try {
+                        ProcessClose(proc.ProcessId)
+                        count++
+                    }
+                }
+            }
+        }
+    }
+
+    if (showTip) {
+        ToolTip(count > 0 ? Format("✓ Terminated {:d} AutoHotkey background process(es).", count) : "No other AutoHotkey processes found.")
+        SetTimer(() => ToolTip(), -2500)
+    }
+    return count
+}
+

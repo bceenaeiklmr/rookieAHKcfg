@@ -3,10 +3,11 @@
 ; Global variables populated by ConfigManager
 global devFolderPath := "C:\dev"
 global devPrivateLib := "C:\dev\ahk\private"
+global enableKillOtherAHK := true
 
 ; Load configuration from config.ini safely with defaults
 LoadConfig() {
-    global devFolderPath, devPrivateLib
+    global devFolderPath, devPrivateLib, enableKillOtherAHK
     local cfgFile, startupAsked
 
     cfgFile := A_ScriptDir "\config.ini"
@@ -15,6 +16,7 @@ LoadConfig() {
         devFolderPath := IniRead(cfgFile, "Settings", "devFolderPath", "C:\dev")
         devPrivateLib := IniRead(cfgFile, "Settings", "devPrivateLib", "C:\dev\ahk\private")
         startupAsked := Integer(IniRead(cfgFile, "Settings", "StartupAsked", "0"))
+        enableKillOtherAHK := Boolean(Integer(IniRead(cfgFile, "Settings", "KillOtherAHK", "1")))
         
         ; If startup wasn't configured yet, prompt once
         if (!startupAsked) {
@@ -25,6 +27,7 @@ LoadConfig() {
     else {
         devFolderPath := "C:\"
         devPrivateLib := "C:\dev"
+        enableKillOtherAHK := true
         
         MsgBox("Config file created, it will be opened after pressing OK.`n`n"
             "Please set your variables.`n`n"
@@ -33,6 +36,7 @@ LoadConfig() {
 
         IniWrite(devFolderPath, cfgFile, "Settings", "devFolderPath")
         IniWrite(devPrivateLib, cfgFile, "Settings", "devPrivateLib")
+        IniWrite(1, cfgFile, "Settings", "KillOtherAHK")
         IniWrite(1, cfgFile, "Settings", "StartupAsked")
         
         ScriptToStartup()
